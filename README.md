@@ -1,59 +1,100 @@
 # Dev Dashboard
 
-A local developer dashboard consisting of a Vue 3/Vite frontend and a Node.js/Express backend. This application allows you to manage and launch your local development projects from a single unified interface.
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![Frontend: Vue 3](https://img.shields.io/badge/frontend-Vue%203-42b883)](https://vuejs.org/)
+[![Backend: Express](https://img.shields.io/badge/backend-Express-111111)](https://expressjs.com/)
 
-## Prerequisites
+Dev Dashboard is a local-first project launcher for developers who work across many repositories.
+It gives you one place to organize projects, run saved commands, track activity, and manage local notes/secrets.
 
-- Node.js (v18+ recommended)
-- npm or yarn
+## Highlights
 
-## Project Structure
+- Project library with tags, pinning, and edit dialogs
+- Bulk add projects from a parent folder (with scan + select)
+- Grouped/collapsible project sections
+- Saved per-project commands with working-directory support
+- Live command log panel with re-attach + explicit kill
+- Activity feed, notes page, draggable todo board, encrypted vault
+- Zero cloud dependency: data stored locally in JSON files
 
-- `frontend/`: Vue 3, Vite, Tailwind CSS, Vue Router client application.
-- `backend/`: Node.js, Express backend that stores data in a local `projects.json`.
+## Tech Stack
 
-## Getting Started
+- Frontend: Vue 3, TypeScript, Vite, Tailwind CSS
+- Backend: Node.js, Express
+- Storage: local JSON files (`backend/projects.json`, `backend/activity-log.json`)
 
-### 1. Start the Backend
+## Quick Start
 
-The backend runs on port 6001 by default.
+### Prerequisites
+
+- Node.js 18+
+- npm 9+
+
+### 1. Install dependencies
+
+```bash
+cd frontend && npm install
+cd ../backend && npm install
+```
+
+### 2. Start backend
 
 ```bash
 cd backend
-npm install
-node server.js
+npm start
 ```
 
-### 2. Start the Frontend
+Backend default URL: `http://localhost:6001`
 
-The frontend development server runs using Vite.
+### 3. Start frontend
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-Open your browser and navigate to the URL provided by Vite (typically `http://localhost:5173`).
+Frontend default URL: `http://localhost:5173`
 
-## Features
+### Windows helper
 
-- View locally configured projects
-- Add new projects with custom metadata
-- Launch projects via custom commands
-- Simple JSON-based database (`projects.json`) for easy backup and editing
+`start-dashboard.bat` can launch backend + frontend together (Windows).
+
+## Repository Layout
+
+```text
+.
+|- backend/      # Express API + local JSON storage
+|- frontend/     # Vue app
+|- start-dashboard.bat
+`- README.md
+```
+
+## Development Workflow
+
+```bash
+# frontend build check
+cd frontend && npm run build
+
+# backend syntax check
+cd backend && node --check server.js
+```
+
+## Data and Privacy
+
+- This project is designed for local use.
+- Vault data is encrypted in-browser before being stored locally.
+- Do not commit personal/local runtime data files to Git.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/awesome-feature`)
-3. Commit your changes (`git commit -am 'Add an awesome feature'`)
-4. Push to the branch (`git push origin feature/awesome-feature`)
-5. Open a Pull Request
+Contributions are welcome. Please read `CONTRIBUTING.md` first.
+
+By participating, you agree to follow `CODE_OF_CONDUCT.md`.
+
+## Security
+
+Please report vulnerabilities according to `SECURITY.md`.
 
 ## License
 
-MIT License
-
-## Desktop Start icon 
-Copy the Start-dashboard.bat code  file and create a file named .bat and then paste the code  in it 
+MIT - see `LICENSE`.

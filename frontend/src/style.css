@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+:root {
+	--accent-color: #3b82f6;
+	--accent-color-soft: color-mix(in srgb, var(--accent-color) 16%, transparent);
+}
+
+.accent-text {
+	color: var(--accent-color);
+}
+
+.accent-bg {
+	background-color: var(--accent-color);
+}
+
+.accent-border {
+	border-color: var(--accent-color);
+}
+
+.accent-soft-bg {
+	background-color: var(--accent-color-soft);
+}

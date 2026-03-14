@@ -1,14 +1,32 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Dev Dashboard backend API (Express + local JSON storage)",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "dashboard",
+    "developer-tools",
+    "express",
+    "local-first"
+  ],
+  "author": "Dev Dashboard Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Suhar121/Project_Organizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Suhar121/Project_Organizer/issues"
+  },
+  "homepage": "https://github.com/Suhar121/Project_Organizer#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "example-1",
+    "name": "My Project",
+    "description": "Example project record",
+    "path": "D:\\projects\\my-project",
+    "tags": ["frontend"],
+    "commands": [
+      {
+        "id": "cmd-1",
+        "label": "Dev",
+        "command": "npm run dev",
+        "workingDir": "frontend"
+      }
+    ],
+    "isPinned": false,
+    "rootFolder": null,
+    "status": "stopped"
+  }
+]
