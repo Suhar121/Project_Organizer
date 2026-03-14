@@ -54,3 +54,6 @@ Open your browser and navigate to the URL provided by Vite (typically `http://lo
 ## License
 
 MIT License
+
+## Desktop Start icon 
+Copy the Start-dashboard.bat code  file and create a file named .bat and then paste the code  in it 
