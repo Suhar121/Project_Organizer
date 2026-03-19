@@ -98,3 +98,11 @@ Please report vulnerabilities according to `SECURITY.md`.
 ## License
 
 MIT - see `LICENSE`.
+
+## Recent Updates
+
+- **UI/UX Refinements**: Introduced custom scrollbars and viewport bounds for large dialogs (like the Edit Project Dialog).
+- **Multiple Saved Commands**: Updated Project Cards to display and execute multiple custom play buttons dynamically.
+- **Design & Theming Fixes**: Restored missing Tailwind theme variables \--color-error\ and text map bindings across textarea inputs to solve visual blindspots.
+- **TypeScript Stability**: Eliminated blocking Vue-TSC compiling errors and strict linter exceptions causing blank viewport rendering.
+

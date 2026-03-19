@@ -624,6 +624,39 @@ app.post('/projects/:id/commands/kill', (req, res) => {
   res.json({ message: 'Process killed' });
 });
 
+// Kill arbitrary process by PID
+app.post('/system/processes/kill', (req, res) => {
+  const { pid } = req.body;
+  if (!pid) return res.status(400).json({ error: 'PID required' });
+  killProcessTree(pid);
+  res.json({ message: 'Process killed successfully' });
+});
+
+// Get all currently running processes
+app.get('/running-processes', (req, res) => {
+  const processes = [];
+
+  for (const [runId, session] of runningProcesses.entries()) {
+    const dashIdx = runId.lastIndexOf('-');
+    const projectId = dashIdx > -1 ? runId.slice(0, dashIdx) : runId;
+    const startedAt = dashIdx > -1 ? parseInt(runId.slice(dashIdx + 1), 10) : Date.now();
+
+    const commandKey = session.commandKey || '';
+    const colonIdx = commandKey.indexOf(':');
+    const commandId = colonIdx > -1 ? commandKey.slice(colonIdx + 1) : '';
+
+    processes.push({
+      runId,
+      projectId,
+      commandId,
+      startedAt: new Date(startedAt).toISOString(),
+      pid: session.child?.pid || null
+    });
+  }
+
+  res.json({ processes });
+});
+
 // Run start.ps1
 app.post('/run', (req, res) => {
   const { path: projectPath } = req.body;
