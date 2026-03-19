@@ -1,6 +1,0 @@
-{
-  "provider": "openai",
-  "apiKey": "",
-  "model": "gpt-4o-mini",
-  "baseURL": "https://api.openai.com/v1"
-}

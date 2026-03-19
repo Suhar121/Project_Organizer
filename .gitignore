@@ -34,3 +34,9 @@ backend/activity-log.json
 .env.development.local
 .env.test.local
 .env.production.local
+
+.agents/
+skills-lock.json
+backend/data/*.sqlite
+backend/*.migrated
+backend/settings.json
