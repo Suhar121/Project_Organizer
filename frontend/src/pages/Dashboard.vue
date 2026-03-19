@@ -17,6 +17,7 @@ import PortManager from '../components/PortManager.vue'
 import NotesPage from './NotesPage.vue'
 import ActivityPage from './ActivityPage.vue'
 import VaultPage from './VaultPage.vue'
+import BoardPage from './BoardPage.vue'
 import Button from '../components/ui/Button.vue'
 
 import {
@@ -37,7 +38,7 @@ import { useRecentProjects } from '../composables/useRecentProjects'
 import { useRunningProcesses } from '../composables/useRunningProcesses'
 
 type TodoStatus = 'todo' | 'doing' | 'done'
-type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault'
+type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban'
 
 type TodoItem = {
   id: string
@@ -344,6 +345,7 @@ watch(activePage, (page) => {
         <h1 class="text-xl font-bold text-primary tracking-tighter font-headline uppercase italic">TACTICAL_OS</h1>
         <nav class="hidden lg:flex items-center gap-8 ml-8">
           <button @click="activePage = 'dashboard'" :class="[activePage === 'dashboard' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">DASHBOARD</button>
+          <button @click="activePage = 'kanban'" :class="[activePage === 'kanban' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">KANBAN</button>
           <button @click="activePage = 'notes'" :class="[activePage === 'notes' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">GLOBAL_NOTES</button>
           <button @click="activePage = 'activity'" :class="[activePage === 'activity' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">ACTIVITY_LOG</button>
           <button @click="activePage = 'vault'" :class="[activePage === 'vault' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">SECRET_VAULT</button>
@@ -431,6 +433,10 @@ watch(activePage, (page) => {
           @remove-secret="removeVaultSecret"
           @toggle-visibility="toggleSecretVisibility"
         />
+      </template>
+
+      <template v-else-if="activePage === 'kanban'">
+        <BoardPage :projects="projects" />
       </template>
     </main>
 
