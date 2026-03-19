@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Play, Code, FolderOpen, Trash2, Pin, PinOff, Edit, GitBranch, Terminal } from 'lucide-vue-next'
-import Card from './ui/Card.vue'
-import CardHeader from './ui/CardHeader.vue'
-import CardTitle from './ui/CardTitle.vue'
-import CardDescription from './ui/CardDescription.vue'
-import CardContent from './ui/CardContent.vue'
-import CardFooter from './ui/CardFooter.vue'
-import Badge from './ui/Badge.vue'
+import { Play, Code, FolderOpen, Trash2, Pin, PinOff, Edit, GitBranch, Terminal, Database, Cloud, History, Settings } from 'lucide-vue-next'
+
+import { runProject, runProjectCommand, openVSCode, openFolder, deleteProject, updateProject } from '../services/api'
+import type { Project, ProjectCommand } from '../services/api'
 import Button from './ui/Button.vue'
-import CommandLogPanel from './CommandLogPanel.vue'
-import { runProject, openVSCode, openFolder, deleteProject, updateProject } from '../services/api'
-import type { Project } from '../services/api'
 
 const props = defineProps<{
   project: Project
+  isRunning?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -41,151 +35,93 @@ const togglePin = async () => {
     emit('updated', props.project.id)
   } catch (error) {
     console.error(error)
-    alert('Failed to update pin status')
   }
 }
 
 const handleStart = async () => {
   try {
     await runProject(props.project.path)
-    alert(`Started project: ${props.project.name}`)
   } catch (error) {
     console.error(error)
-    alert('Failed to start project')
   }
 }
 
-const handleOpenVSCode = async () => {
+const handleRunCommand = async (cmd: ProjectCommand) => {
   try {
-    await openVSCode(props.project.path)
+    await runProjectCommand(props.project.id, { commandId: cmd.id })
   } catch (error) {
     console.error(error)
   }
-}
-
-const handleOpenFolder = async () => {
-  try {
-    await openFolder(props.project.path)
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-const logPanel = ref({ open: false, commandId: '', commandLabel: '' })
-
-const looksDangerous = (command: string) => {
-  return /(rm|del|drop|format|shutdown)/i.test(command)
-}
-
-const handleRunSavedCommand = (commandId: string, label: string, command: string) => {
-  if (looksDangerous(command)) {
-    const ok = confirm(`This command may be risky:\n${command}\n\nRun anyway?`)
-    if (!ok) return
-  }
-  logPanel.value = { open: true, commandId, commandLabel: label }
 }
 </script>
 
 <template>
-  <Card class="flex flex-col h-full group relative" :class="project.isPinned ? 'border-blue-500 shadow-md ring-1 ring-blue-500' : ''">
-    
-    <div class="absolute right-4 top-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-      <button
-        @click="togglePin"
-        :class="project.isPinned ? 'text-blue-500 hover:text-blue-600' : 'text-gray-400 hover:text-blue-500'"
-        :title="project.isPinned ? 'Unpin Project' : 'Pin Project'"
-      >
-        <PinOff v-if="project.isPinned" class="h-4 w-4" />
-        <Pin v-else class="h-4 w-4" />
-      </button>
+  <div class="bg-surface-container-low/80 backdrop-blur-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 group relative overflow-hidden border-l-2 hover:border-r-2 transition-all duration-300" :class="isRunning ? 'border-primary shadow-[0_0_15px_rgba(195,245,255,0.1)]' : 'border-outline-variant'">
 
-      <button
-        @click="emit('edit', project)"
-        class="text-gray-400 hover:text-green-500"
-        title="Edit Project"
-      >
-        <Edit class="h-4 w-4" />
-      </button>
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 bg-surface-container-highest flex items-center justify-center">
+        <Database v-if="project.tags?.includes('database')" class="h-5 w-5 text-secondary" />
+        <Cloud v-else-if="project.tags?.includes('infra')" class="h-5 w-5 text-primary" />
 
-      <button
-        @click="handleDelete"
-        class="text-gray-400 hover:text-red-500"
-        title="Remove Project"
-      >
-        <Trash2 class="h-4 w-4" />
-      </button>
-    </div>
-
-    <CardHeader class="pt-6">
-      <div class="flex items-center gap-2 pr-16 text-left">
-        <span class="inline-flex h-2 w-2 flex-shrink-0 rounded-full font-bold" :class="project.status === 'running' ? 'bg-green-500' : 'bg-gray-300'"></span>
-        <CardTitle class="truncate">{{ project.name }}</CardTitle>
+        <Terminal v-else class="h-5 w-5 text-primary" />
       </div>
-      <CardDescription class="mt-2">{{ project.description || 'No description provided.' }}</CardDescription>
-    </CardHeader>
+      <div>
+        <div class="flex items-center gap-2">
+          <h5 class="font-headline font-black text-primary uppercase tracking-tight text-sm drop-shadow-[0_0_8px_rgba(195,245,255,0.2)]">{{ project.name }}</h5>
 
-    <CardContent class="flex-1">
-      <div class="space-y-4">
-        <div>
-          <p class="text-xs text-muted-foreground font-mono truncate" :title="project.path">
-            {{ project.path }}
-          </p>
+          <span v-if="isRunning" class="bg-primary/20 text-primary text-[9px] px-1.5 py-0.5 font-label font-bold">ACTIVE</span>
+          <span v-else class="bg-surface-container-highest text-on-surface-variant text-[9px] px-1.5 py-0.5 font-label font-bold">IDLE</span>
+          <button @click="togglePin" class="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Pin v-if="!project.isPinned" class="h-3 w-3 text-outline hover:text-primary" />
+            <PinOff v-else class="h-3 w-3 text-primary" />
+          </button>
         </div>
-
-        <div v-if="project.git?.isGitRepo" class="flex flex-wrap gap-2">
-          <Badge variant="outline" class="inline-flex items-center gap-1">
+        <p v-if="project.description" class="text-[11px] text-on-surface-variant font-body mt-1 mb-1 line-clamp-1 pr-4 max-w-sm">{{ project.description }}</p>
+        <div class="flex items-center gap-3 mt-1">
+          <div v-if="project.git?.isGitRepo" class="flex items-center gap-1 text-[10px] font-mono text-on-surface-variant">
             <GitBranch class="h-3 w-3" />
             {{ project.git.branch || 'detached' }}
-          </Badge>
-          <Badge v-if="project.git.hasUncommittedChanges" variant="secondary">Uncommitted</Badge>
-          <Badge v-if="project.git.needsPush" variant="secondary">Needs Push</Badge>
-        </div>
-        
-        <div class="flex flex-wrap gap-2" v-if="project.tags && project.tags.length > 0">
-          <Badge v-for="tag in project.tags" :key="tag" variant="secondary">{{ tag }}</Badge>
-        </div>
-
-        <div v-if="project.commands && project.commands.length > 0" class="space-y-1.5">
-          <p class="text-xs text-muted-foreground font-medium flex items-center gap-1">
-            <Terminal class="h-3 w-3" /> Quick Run
-          </p>
-          <div class="flex flex-wrap gap-1.5">
-            <Button
-              v-for="cmd in project.commands.slice(0, 3)"
-              :key="cmd.id"
-              size="sm"
-              variant="outline"
-              class="h-7 px-2 text-xs gap-1"
-              @click="handleRunSavedCommand(cmd.id, cmd.label, cmd.command)"
-              :title="cmd.workingDir ? `${cmd.command}  (dir: ${cmd.workingDir})` : cmd.command"
-            >
-              <Play class="h-2.5 w-2.5" />
-              {{ cmd.label }}
-            </Button>
-            <span v-if="project.commands.length > 3" class="text-xs text-muted-foreground self-center">+{{ project.commands.length - 3 }} more</span>
+          </div>
+          <div v-if="project.git?.isGitRepo" class="flex items-center gap-1 text-[10px] font-mono text-on-surface-variant">
+            <History class="h-3 w-3" />
+            {{ project.git.lastCommitHash?.slice(0, 7) || '-------' }}
+          </div>
+          <div class="text-[10px] text-on-surface-variant/70 truncate max-w-[200px] font-mono tracking-tight" :title="project.path">
+            {{ project.path }}
           </div>
         </div>
       </div>
-    </CardContent>
+    </div>
 
-    <CardFooter class="flex flex-wrap gap-2 mt-auto pt-6 border-t border-gray-100 dark:border-gray-800">
-      <Button size="sm" @click="handleStart" class="w-full sm:w-auto flex-1">
-        <Play class="mr-2 h-4 w-4" /> Start
-      </Button>
-      <Button size="icon" variant="outline" @click="handleOpenVSCode" title="Open in VS Code">
-        <Code class="h-4 w-4" />
-      </Button>
-      <Button size="icon" variant="outline" @click="handleOpenFolder" title="Open Folder">
-        <FolderOpen class="h-4 w-4" />
-      </Button>
-    </CardFooter>
-  </Card>
-
-  <CommandLogPanel
-    :open="logPanel.open"
-    :project-id="project.id"
-    :command-id="logPanel.commandId"
-    :command-label="logPanel.commandLabel"
-    @close="logPanel.open = false"
-  />
+    <div class="flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-all">
+      <template v-if="project.commands && project.commands.length > 0">
+        <button
+          v-for="cmd in project.commands"
+          :key="cmd.id"
+          @click="handleRunCommand(cmd)"
+          class="p-2 bg-surface-container hover:bg-primary/10 hover:text-primary transition-all active:scale-95 flex items-center gap-1 group/btn"
+          :class="isRunning ? 'text-primary' : 'text-on-surface-variant'"
+          :title="`Run: ${cmd.label}`"
+        >
+          <Play class="h-4 w-4" />
+          <span class="text-[9px] font-bold uppercase tracking-wider hidden group-hover/btn:block whitespace-nowrap">{{ cmd.label }}</span>
+        </button>
+      </template>
+      <button
+        v-else
+        @click="handleStart"
+        class="p-2 bg-surface-container hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
+        :class="isRunning ? 'text-primary' : 'text-on-surface-variant'"
+        :title="isRunning ? 'Running' : 'Start Process'"
+      >
+        <Play class="h-4 w-4" />
+      </button>
+      <button @click="emit('edit', project)" class="p-2 bg-surface-container hover:bg-primary/10 hover:text-primary transition-all active:scale-95 text-on-surface-variant">
+        <Edit class="h-4 w-4" />
+      </button>
+      <button @click="handleDelete" class="p-2 bg-surface-container hover:bg-error/10 hover:text-error transition-all active:scale-95 text-on-surface-variant">
+        <Trash2 class="h-4 w-4" />
+      </button>
+    </div>
+  </div>
 </template>

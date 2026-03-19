@@ -1,22 +1,78 @@
 @import "tailwindcss";
 
-:root {
-	--accent-color: #3b82f6;
-	--accent-color-soft: color-mix(in srgb, var(--accent-color) 16%, transparent);
+@theme {
+  --color-primary: #c3f5ff;
+  --color-on-primary: #00363d;
+  --color-primary-container: #00e5ff;
+  --color-on-primary-container: #00626e;
+
+  --color-secondary: #ffcf8f;
+  --color-on-secondary: #452b00;
+  --color-secondary-container: #feaa00;
+  --color-on-secondary-container: #684300;
+
+  --color-tertiary: #e4edff;
+  --color-on-tertiary: #213145;
+
+  --color-surface: #0b1326;
+  --color-on-surface: #dae2fd;
+  --color-surface-variant: #2d3449;
+  --color-on-surface-variant: #bac9cc;
+
+  --color-background: #0b1326;
+  --color-outline: #849396;
+  --color-outline-variant: #3b494c;
+
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Space Grotesk", sans-serif;
+
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 9999px;
 }
 
-.accent-text {
-	color: var(--accent-color);
+@layer base {
+  * {
+    @apply border-outline-variant;
+  }
+  body {
+    @apply bg-surface text-on-surface font-body;
+    border-radius: 0 !important;
+  }
 }
 
-.accent-bg {
-	background-color: var(--accent-color);
+@layer utilities {
+  .frame-rect { clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .accent-text { color: var(--color-primary); }
+  .accent-bg { background-color: var(--color-primary); color: var(--color-on-primary); }
+  .accent-border { border-color: var(--color-primary); }
 }
 
-.accent-border {
-	border-color: var(--accent-color);
-}
-
-.accent-soft-bg {
-	background-color: var(--accent-color-soft);
-}
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0b1326; }
+::-webkit-scrollbar-thumb { background: #3b494c; }
+::-webkit-scrollbar-thumb:hover { background: #c3f5ff; }

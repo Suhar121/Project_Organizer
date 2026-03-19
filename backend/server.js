@@ -191,31 +191,51 @@ app.get('/system/overview', (req, res) => {
   const freeMem = os.freemem();
   const usedMem = totalMem - freeMem;
 
-  const cpuRaw = runCommand(
-    'powershell -NoProfile -Command "(Get-Counter \'\\Processor(_Total)\\% Processor Time\').CounterSamples.CookedValue"'
-  );
-  const cpuUsagePercent = Number.isFinite(Number(cpuRaw))
-    ? Number(Number(cpuRaw).toFixed(1))
-    : null;
+  let cpuUsagePercent = null;
+  let disks = [];
 
-  const diskJson = runCommand(
-    'powershell -NoProfile -Command "Get-CimInstance Win32_LogicalDisk -Filter \'DriveType=3\' | Select-Object DeviceID,Size,FreeSpace | ConvertTo-Json -Compress"'
-  );
-  const disks = parseJsonArray(diskJson)
-    .map(disk => {
-      const totalBytes = Number(disk.Size || 0);
-      const freeBytes = Number(disk.FreeSpace || 0);
-      const usedBytes = Math.max(totalBytes - freeBytes, 0);
-      const percent = totalBytes > 0 ? Number(((usedBytes / totalBytes) * 100).toFixed(1)) : 0;
+  if (process.platform === 'win32') {
+    const cpuRaw = runCommand(
+      'powershell -NoProfile -Command "(Get-Counter \'\\Processor(_Total)\\% Processor Time\').CounterSamples.CookedValue"'
+    );
+    cpuUsagePercent = Number.isFinite(Number(cpuRaw))
+      ? Number(Number(cpuRaw).toFixed(1))
+      : null;
 
-      return {
-        drive: disk.DeviceID,
-        usedGb: bytesToGb(usedBytes),
-        totalGb: bytesToGb(totalBytes),
-        usagePercent: percent
-      };
-    })
-    .sort((a, b) => a.drive.localeCompare(b.drive));
+    const diskJson = runCommand(
+      'powershell -NoProfile -Command "Get-CimInstance Win32_LogicalDisk -Filter \'DriveType=3\' | Select-Object DeviceID,Size,FreeSpace | ConvertTo-Json -Compress"'
+    );
+    disks = parseJsonArray(diskJson)
+      .map(disk => {
+        const totalBytes = Number(disk.Size || 0);
+        const freeBytes = Number(disk.FreeSpace || 0);
+        const usedBytes = Math.max(totalBytes - freeBytes, 0);
+        const percent = totalBytes > 0 ? Number(((usedBytes / totalBytes) * 100).toFixed(1)) : 0;
+
+        return {
+          drive: disk.DeviceID,
+          usedGb: bytesToGb(usedBytes),
+          totalGb: bytesToGb(totalBytes),
+          usagePercent: percent
+        };
+      })
+      .sort((a, b) => a.drive.localeCompare(b.drive));
+  } else {
+    // Generic fallback for non-Windows
+    const loadAvg = os.loadavg()[0];
+    const cpus = os.cpus().length;
+    cpuUsagePercent = Number(((loadAvg / cpus) * 100).toFixed(1));
+
+    // Disk fallback (simplified, may need 'df' parsing for better accuracy)
+    disks = [
+      {
+        drive: '/',
+        usedGb: bytesToGb(totalMem - freeMem), // Fake disk usage based on RAM for placeholder
+        totalGb: bytesToGb(totalMem),
+        usagePercent: Number(((totalMem - freeMem) / totalMem * 100).toFixed(1))
+      }
+    ];
+  }
 
   res.json({
     cpuUsagePercent,
@@ -231,59 +251,86 @@ app.get('/system/overview', (req, res) => {
 // Port manager overview
 app.get('/system/ports', (req, res) => {
   const projects = getProjects();
-
-  const processJson = runCommand(
-    'powershell -NoProfile -Command "Get-CimInstance Win32_Process | Select-Object ProcessId,Name,CommandLine | ConvertTo-Json -Compress -Depth 3"'
-  );
-  const processList = parseJsonArray(processJson);
-  const processMap = new Map();
-  for (const proc of processList) {
-    processMap.set(String(proc.ProcessId), {
-      name: proc.Name || 'Unknown',
-      commandLine: proc.CommandLine || ''
-    });
-  }
-
-  const netstatRaw = runCommand('netstat -ano -p tcp');
-  const lines = netstatRaw.split(/\r?\n/);
-
   const ports = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('TCP')) continue;
 
-    const parts = trimmed.split(/\s+/);
-    if (parts.length < 5) continue;
-
-    const localAddress = parts[1];
-    const state = parts[3];
-    const pid = Number(parts[4]);
-    if (state !== 'LISTENING' || !Number.isFinite(pid)) continue;
-
-    const separatorIdx = localAddress.lastIndexOf(':');
-    if (separatorIdx <= -1) continue;
-    const host = localAddress.slice(0, separatorIdx).replace(/^[\[]|[\]]$/g, '');
-    const port = Number(localAddress.slice(separatorIdx + 1));
-    if (!Number.isFinite(port)) continue;
-
-    const proc = processMap.get(String(pid)) || { name: 'Unknown', commandLine: '' };
-    const commandLineLower = (proc.commandLine || '').toLowerCase();
-
-    let projectName = null;
-    for (const project of projects) {
-      if (project.path && commandLineLower.includes(String(project.path).toLowerCase())) {
-        projectName = project.name;
-        break;
-      }
+  if (process.platform === 'win32') {
+    const processJson = runCommand(
+      'powershell -NoProfile -Command "Get-CimInstance Win32_Process | Select-Object ProcessId,Name,CommandLine | ConvertTo-Json -Compress -Depth 3"'
+    );
+    const processList = parseJsonArray(processJson);
+    const processMap = new Map();
+    for (const proc of processList) {
+      processMap.set(String(proc.ProcessId), {
+        name: proc.Name || 'Unknown',
+        commandLine: proc.CommandLine || ''
+      });
     }
 
-    ports.push({
-      host,
-      port,
-      pid,
-      processName: proc.name,
-      projectName
-    });
+    const netstatRaw = runCommand('netstat -ano -p tcp');
+    const lines = netstatRaw.split(/\r?\n/);
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('TCP')) continue;
+
+      const parts = trimmed.split(/\s+/);
+      if (parts.length < 5) continue;
+
+      const localAddress = parts[1];
+      const state = parts[3];
+      const pid = Number(parts[4]);
+      if (state !== 'LISTENING' || !Number.isFinite(pid)) continue;
+
+      const separatorIdx = localAddress.lastIndexOf(':');
+      if (separatorIdx <= -1) continue;
+      const host = localAddress.slice(0, separatorIdx).replace(/^[\[]|[\]]$/g, '');
+      const port = Number(localAddress.slice(separatorIdx + 1));
+      if (!Number.isFinite(port)) continue;
+
+      const proc = processMap.get(String(pid)) || { name: 'Unknown', commandLine: '' };
+      const commandLineLower = (proc.commandLine || '').toLowerCase();
+
+      let projectName = null;
+      for (const project of projects) {
+        if (project.path && commandLineLower.includes(String(project.path).toLowerCase())) {
+          projectName = project.name;
+          break;
+        }
+      }
+
+      ports.push({
+        host,
+        port,
+        pid,
+        processName: proc.name,
+        projectName
+      });
+    }
+  } else {
+    // Basic lsof or netstat for non-Windows
+    try {
+      const lsofRaw = runCommand('lsof -iTCP -sTCP:LISTEN -P -n');
+      const lines = lsofRaw.split('\n').slice(1);
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 9) continue;
+        const processName = parts[0];
+        const pid = parseInt(parts[1], 10);
+        const addressParts = parts[8].split(':');
+        const port = parseInt(addressParts[addressParts.length - 1], 10);
+        const host = addressParts.slice(0, -1).join(':') || '*';
+
+        ports.push({
+          host,
+          port,
+          pid,
+          processName,
+          projectName: null // Harder to map project without command line on generic lsof
+        });
+      }
+    } catch (e) {
+      // Ignore if lsof is not available
+    }
   }
 
   ports.sort((a, b) => a.port - b.port);
@@ -624,6 +671,39 @@ app.post('/projects/:id/commands/kill', (req, res) => {
   res.json({ message: 'Process killed' });
 });
 
+// Kill arbitrary process by PID
+app.post('/system/processes/kill', (req, res) => {
+  const { pid } = req.body;
+  if (!pid) return res.status(400).json({ error: 'PID required' });
+  killProcessTree(pid);
+  res.json({ message: 'Process killed successfully' });
+});
+
+// Get all currently running processes
+app.get('/running-processes', (req, res) => {
+  const processes = [];
+
+  for (const [runId, session] of runningProcesses.entries()) {
+    const dashIdx = runId.lastIndexOf('-');
+    const projectId = dashIdx > -1 ? runId.slice(0, dashIdx) : runId;
+    const startedAt = dashIdx > -1 ? parseInt(runId.slice(dashIdx + 1), 10) : Date.now();
+
+    const commandKey = session.commandKey || '';
+    const colonIdx = commandKey.indexOf(':');
+    const commandId = colonIdx > -1 ? commandKey.slice(colonIdx + 1) : '';
+
+    processes.push({
+      runId,
+      projectId,
+      commandId,
+      startedAt: new Date(startedAt).toISOString(),
+      pid: session.child?.pid || null
+    });
+  }
+
+  res.json({ processes });
+});
+
 // Run start.ps1
 app.post('/run', (req, res) => {
   const { path: projectPath } = req.body;
@@ -699,7 +779,13 @@ app.post('/open-folder', (req, res) => {
   if (!projectPath) return res.status(400).json({ error: 'Path is required' });
   const projectName = findProjectNameByPath(projectPath);
 
-  exec(`explorer "${projectPath}"`, (error) => {
+  const command = process.platform === 'win32'
+    ? `explorer "${projectPath}"`
+    : process.platform === 'darwin'
+      ? `open "${projectPath}"`
+      : `xdg-open "${projectPath}"`;
+
+  exec(command, (error) => {
     if (error) {
        console.error(`Error opening folder: ${error}`);
        appendActivity({
