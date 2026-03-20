@@ -1,51 +1,44 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Lightbulb, Trash2, Plus } from 'lucide-vue-next'
-
-type ProjectIdea = {
-  id: string
-  title: string
-  description: string
-  createdAt: string
-}
-
-const IDEAS_STORAGE_KEY = 'dev-dashboard.project-ideas'
+import { fetchProjectIdeas, createProjectIdea, deleteProjectIdea } from '../services/api'
+import type { ProjectIdea } from '../services/api'
 
 const ideas = ref<ProjectIdea[]>([])
 const newIdeaTitle = ref('')
 const newIdeaDescription = ref('')
 
-const loadIdeas = () => {
-  const saved = localStorage.getItem(IDEAS_STORAGE_KEY)
-  if (saved) {
-    try {
-      ideas.value = JSON.parse(saved)
-    } catch {
-      ideas.value = []
-    }
+const loadIdeas = async () => {
+  try {
+    ideas.value = await fetchProjectIdeas()
+  } catch (err) {
+    console.error('Failed to load ideas:', err)
   }
 }
 
-const saveIdeas = () => {
-  localStorage.setItem(IDEAS_STORAGE_KEY, JSON.stringify(ideas.value))
-}
-
-const addIdea = () => {
+const addIdea = async () => {
   if (!newIdeaTitle.value.trim()) return
-  ideas.value.unshift({
-    id: Date.now().toString(),
-    title: newIdeaTitle.value.trim(),
-    description: newIdeaDescription.value.trim(),
-    createdAt: new Date().toISOString()
-  })
-  newIdeaTitle.value = ''
-  newIdeaDescription.value = ''
-  saveIdeas()
+  try {
+    const created = await createProjectIdea({
+      title: newIdeaTitle.value.trim(),
+      description: newIdeaDescription.value.trim(),
+      createdAt: new Date().toISOString()
+    })
+    ideas.value.unshift(created)
+    newIdeaTitle.value = ''
+    newIdeaDescription.value = ''
+  } catch (err) {
+    console.error('Failed to add idea:', err)
+  }
 }
 
-const removeIdea = (id: string) => {
-  ideas.value = ideas.value.filter(idea => idea.id !== id)
-  saveIdeas()
+const removeIdea = async (id: string) => {
+  try {
+    await deleteProjectIdea(id)
+    ideas.value = ideas.value.filter(idea => idea.id !== id)
+  } catch (err) {
+    console.error('Failed to delete idea:', err)
+  }
 }
 
 onMounted(loadIdeas)

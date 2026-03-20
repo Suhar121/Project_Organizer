@@ -1,24 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import type { Project } from '../services/api'
+import type { Project, KanbanTicket } from '../services/api'
+import {
+  fetchKanbanTickets,
+  createKanbanTicket,
+  updateKanbanTicket,
+  deleteKanbanTicket
+} from '../services/api'
 
 type TicketStatus = 'backlog' | 'todo' | 'doing' | 'done'
-type Ticket = {
-  id: string
-  title: string
-  description: string
-  status: TicketStatus
-  projectId?: string
-  createdAt: string
-}
 
 const props = defineProps<{
   projects: Project[]
 }>()
 
-const TICKETS_STORAGE_KEY = 'dev-dashboard.kanban-tickets'
-
-const tickets = ref<Ticket[]>([])
+const tickets = ref<KanbanTicket[]>([])
 const isAddingTicket = ref(false)
 const newTicket = ref({
   title: '',
@@ -34,47 +30,49 @@ const columns: { id: TicketStatus; label: string }[] = [
   { id: 'done', label: 'Done' }
 ]
 
-const loadTickets = () => {
-  const saved = localStorage.getItem(TICKETS_STORAGE_KEY)
-  if (saved) {
-    try {
-      tickets.value = JSON.parse(saved)
-    } catch {
-      tickets.value = []
-    }
+const loadTickets = async () => {
+  try {
+    tickets.value = await fetchKanbanTickets()
+  } catch (err) {
+    console.error('Failed to load tickets:', err)
   }
 }
 
-const saveTickets = () => {
-  localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(tickets.value))
-}
-
-const addTicket = () => {
+const addTicket = async () => {
   if (!newTicket.value.title.trim()) return
-  tickets.value.push({
-    id: Date.now().toString(),
-    title: newTicket.value.title.trim(),
-    description: newTicket.value.description.trim(),
-    status: newTicket.value.status,
-    projectId: newTicket.value.projectId || undefined,
-    createdAt: new Date().toISOString()
-  })
-  newTicket.value = { title: '', description: '', status: 'backlog', projectId: '' }
-  isAddingTicket.value = false
-  saveTickets()
-}
-
-const moveTicket = (id: string, status: TicketStatus) => {
-  const ticket = tickets.value.find(t => t.id === id)
-  if (ticket) {
-    ticket.status = status
-    saveTickets()
+  try {
+    const created = await createKanbanTicket({
+      title: newTicket.value.title.trim(),
+      description: newTicket.value.description.trim(),
+      status: newTicket.value.status,
+      projectId: newTicket.value.projectId || undefined,
+      createdAt: new Date().toISOString()
+    })
+    tickets.value.push(created)
+    newTicket.value = { title: '', description: '', status: 'backlog', projectId: '' }
+    isAddingTicket.value = false
+  } catch (err) {
+    console.error('Failed to add ticket:', err)
   }
 }
 
-const removeTicket = (id: string) => {
-  tickets.value = tickets.value.filter(t => t.id !== id)
-  saveTickets()
+const moveTicket = async (id: string, status: TicketStatus) => {
+  try {
+    await updateKanbanTicket(id, { status })
+    const ticket = tickets.value.find(t => t.id === id)
+    if (ticket) ticket.status = status
+  } catch (err) {
+    console.error('Failed to move ticket:', err)
+  }
+}
+
+const removeTicket = async (id: string) => {
+  try {
+    await deleteKanbanTicket(id)
+    tickets.value = tickets.value.filter(t => t.id !== id)
+  } catch (err) {
+    console.error('Failed to delete ticket:', err)
+  }
 }
 
 const getTicketsInColumn = (status: TicketStatus) => {

@@ -4,6 +4,7 @@ import {
   Plus,
   Search,
   RefreshCw,
+  X
 } from 'lucide-vue-next'
 import ProjectCard from '../components/ProjectCard.vue'
 import AddProjectDialog from '../components/AddProjectDialog.vue'
@@ -14,6 +15,7 @@ import ProjectStatsCard from '../components/ProjectStatsCard.vue'
 import SystemMonitor from '../components/SystemMonitor.vue'
 import PortManager from '../components/PortManager.vue'
 import Sidebar from '../components/Sidebar.vue'
+import FileBrowser from '../components/FileBrowser.vue'
 import NotesPage from './NotesPage.vue'
 import ActivityPage from './ActivityPage.vue'
 import VaultPage from './VaultPage.vue'
@@ -77,6 +79,7 @@ const tagFilter = ref('')
 const isAddDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const projectToEdit = ref<Project | null>(null)
+const selectedProject = ref<Project | null>(null)
 
 const systemOverview = ref<SystemOverview | null>(null)
 const ports = ref<PortEntry[]>([])
@@ -179,6 +182,10 @@ const refreshOpsData = async () => {
 const openEditDialog = (project: Project) => {
   projectToEdit.value = project
   isEditDialogOpen.value = true
+}
+
+const selectProject = (project: Project) => {
+  selectedProject.value = project
 }
 
 const availableTags = computed(() => {
@@ -369,46 +376,61 @@ watch(activePage, (page) => {
 
       <main class="p-6 space-y-8 max-w-[1600px] mx-auto w-full flex-1">
       <template v-if="activePage === 'dashboard'">
-        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <section v-if="!selectedProject" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <SystemMonitor :system-overview="systemOverview" class="md:col-span-2" />
           <ProjectStatsCard v-if="projects.length > 0" :projects="projects" :activity-entries="activityEntries" :running-count="getRunningCount()" class="md:col-span-2" />
         </section>
 
-        <RecentProjectsBar v-if="recentProjects.length > 0" :projects="recentProjects" :is-project-running="isProjectRunning" @action-executed="loadProjects(); loadActivity(); refreshRunningProcesses()" @project-clicked="(p) => { search = p.name }" />
+        <RecentProjectsBar v-if="!selectedProject && recentProjects.length > 0" :projects="recentProjects" :is-project-running="isProjectRunning" @action-executed="loadProjects(); loadActivity(); refreshRunningProcesses()" @project-clicked="selectProject" />
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <section class="lg:col-span-2 space-y-6">
-            <div class="flex items-center justify-between mb-2 px-1">
-              <div class="flex items-center gap-3">
-                <div class="p-1.5 bg-primary/10 rounded-lg">
-                  <span class="material-symbols-outlined text-primary text-xl">folder_open</span>
+            <div v-if="selectedProject" class="space-y-4">
+               <div class="flex justify-between items-center">
+                 <div class="flex items-center gap-3">
+                   <button @click="selectedProject = null" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">arrow_back</button>
+                   <h3 class="text-xl font-bold text-on-surface">{{ selectedProject.name }}</h3>
+                 </div>
+                 <button @click="selectedProject = null" class="text-on-surface-variant hover:text-error transition-colors">
+                   <X class="h-5 w-5" />
+                 </button>
+               </div>
+               <FileBrowser :projectId="selectedProject.id" :projectPath="selectedProject.path" />
+               <ProjectCard :project="selectedProject" :is-running="isProjectRunning(selectedProject.id)" @deleted="selectedProject = null; loadProjects()" @updated="loadProjects" @edit="openEditDialog" />
+            </div>
+            <div v-else class="space-y-6">
+              <div class="flex items-center justify-between mb-2 px-1">
+                <div class="flex items-center gap-3">
+                  <div class="p-1.5 bg-primary/10 rounded-lg">
+                    <span class="material-symbols-outlined text-primary text-xl">folder_open</span>
+                  </div>
+                  <h3 class="text-sm font-bold text-on-surface tracking-tight">Active Project Library</h3>
                 </div>
-                <h3 class="text-sm font-bold text-on-surface tracking-tight">Active Project Library</h3>
+                <div v-if="availableTags.length > 0" class="flex gap-2">
+                  <button
+                    v-for="tag in availableTags"
+                    :key="tag"
+                    @click="toggleTagFilter(tag)"
+                    class="px-3 py-1 rounded-full text-[10px] font-bold uppercase transition-all"
+                    :class="tagFilter === tag ? 'bg-primary text-white shadow-sm' : 'bg-surface-container-highest text-on-surface-variant hover:bg-surface-container hover:text-on-surface'"
+                  >
+                    {{ tag }}
+                  </button>
+                </div>
               </div>
-              <div v-if="availableTags.length > 0" class="flex gap-2">
-                <button
-                  v-for="tag in availableTags"
-                  :key="tag"
-                  @click="toggleTagFilter(tag)"
-                  class="px-3 py-1 rounded-full text-[10px] font-bold uppercase transition-all"
-                  :class="tagFilter === tag ? 'bg-primary text-white shadow-sm' : 'bg-surface-container-highest text-on-surface-variant hover:bg-surface-container hover:text-on-surface'"
-                >
-                  {{ tag }}
-                </button>
-              </div>
-            </div>
 
-            <div v-if="filteredProjects.length === 0" class="bg-surface border border-dashed border-outline-variant/30 rounded-2xl p-16 text-center shadow-inner">
-              <span class="material-symbols-outlined text-5xl text-outline-variant/40 mb-4 block">inventory_2</span>
-              <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant/60">No matching projects found</p>
-            </div>
-            <div class="space-y-4">
-              <ProjectCard v-for="project in filteredProjects" :key="project.id" :project="project" :is-running="isProjectRunning(project.id)" @deleted="loadProjects" @updated="loadProjects" @edit="openEditDialog" />
+              <div v-if="filteredProjects.length === 0" class="bg-surface border border-dashed border-outline-variant/30 rounded-2xl p-16 text-center shadow-inner">
+                <span class="material-symbols-outlined text-5xl text-outline-variant/40 mb-4 block">inventory_2</span>
+                <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant/60">No matching projects found</p>
+              </div>
+              <div class="space-y-4">
+                <ProjectCard v-for="project in filteredProjects" :key="project.id" :project="project" :is-running="isProjectRunning(project.id)" @click="selectProject(project)" @deleted="loadProjects" @updated="loadProjects" @edit="openEditDialog" />
+              </div>
             </div>
           </section>
 
           <aside class="space-y-8">
-            <PortManager :filtered-ports="filteredPorts" :is-killing-port="isKillingPort" @kill-process="handleKillProcess" />
+            <PortManager :filtered-ports="filteredPorts" :is-killing-port="isKillingPort" @kill-process="handleKillProcess" @refresh="loadPorts" />
 
             <section class="bg-surface border border-outline-variant/30 rounded-2xl p-6 space-y-4 shadow-sm">
               <div class="flex items-center justify-between mb-2">
@@ -441,7 +463,7 @@ watch(activePage, (page) => {
       </template>
 
       <template v-else-if="activePage === 'activity'">
-        <ActivityPage :activity-entries="activityEntries" />
+        <ActivityPage :activity-entries="activityEntries" :running-count="getRunningCount()" />
       </template>
 
       <template v-else-if="activePage === 'vault'">

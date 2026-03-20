@@ -31,6 +31,25 @@ export interface ProjectCommand {
   workingDir?: string
 }
 
+export interface KanbanTicket {
+  id: string
+  title: string
+  description: string
+  status: 'todo' | 'in-progress' | 'done' | 'backlog' | 'doing'
+  priority?: 'low' | 'medium' | 'high'
+  projectId?: string
+  order?: number
+  createdAt: string
+}
+
+export interface ProjectIdea {
+  id: string
+  title: string
+  description: string
+  status?: string
+  createdAt: string
+}
+
 export interface SystemOverview {
   cpuUsagePercent: number | null
   memory: {
@@ -59,6 +78,20 @@ export interface PortEntry {
   pid: number
   processName: string
   projectName: string | null
+  alias?: string | null
+}
+
+export interface PortAlias {
+  port: number
+  alias: string
+}
+
+export interface FileEntry {
+  name: string
+  path: string
+  isDirectory: boolean
+  size: number
+  mtime: string
 }
 
 export interface ActivityEntry {
@@ -133,6 +166,11 @@ export const fetchProjects = async (): Promise<Project[]> => {
   return data
 }
 
+export const fetchProjectFiles = async (id: string, subPath: string = ''): Promise<{ isDirectory: boolean, files?: FileEntry[] }> => {
+  const { data } = await api.get(`/projects/${id}/files`, { params: { subPath } })
+  return data
+}
+
 export const addProject = async (project: Omit<Project, 'id' | 'status'>): Promise<Project> => {
   const { data } = await api.post('/projects', project)
   return data
@@ -196,6 +234,16 @@ export const fetchPorts = async (): Promise<{ ports: PortEntry[] }> => {
   return data
 }
 
+export const fetchPortAliases = async (): Promise<PortAlias[]> => {
+  const { data } = await api.get('/system/ports/aliases')
+  return data
+}
+
+export const setPortAlias = async (port: number, alias: string): Promise<PortAlias> => {
+  const { data } = await api.post('/system/ports/aliases', { port, alias })
+  return data
+}
+
 export const fetchActivity = async (): Promise<{ entries: ActivityEntry[] }> => {
   const { data } = await api.get('/activity')
   return data
@@ -223,4 +271,39 @@ export const createLabel = async (label: Omit<Label, 'id'>): Promise<Label> => {
 
 export const deleteLabel = async (id: string): Promise<void> => {
   await api.delete(`/labels/${id}`)
+}
+
+// Kanban API
+export const fetchKanbanTickets = async (): Promise<KanbanTicket[]> => {
+  const { data } = await api.get('/kanban/tickets')
+  return data
+}
+
+export const createKanbanTicket = async (ticket: Partial<KanbanTicket>): Promise<KanbanTicket> => {
+  const { data } = await api.post('/kanban/tickets', ticket)
+  return data
+}
+
+export const updateKanbanTicket = async (id: string, ticket: Partial<KanbanTicket>): Promise<KanbanTicket> => {
+  const { data } = await api.put(`/kanban/tickets/${id}`, ticket)
+  return data
+}
+
+export const deleteKanbanTicket = async (id: string): Promise<void> => {
+  await api.delete(`/kanban/tickets/${id}`)
+}
+
+// Project Ideas API
+export const fetchProjectIdeas = async (): Promise<ProjectIdea[]> => {
+  const { data } = await api.get('/ideas')
+  return data
+}
+
+export const createProjectIdea = async (idea: Partial<ProjectIdea>): Promise<ProjectIdea> => {
+  const { data } = await api.post('/ideas', idea)
+  return data
+}
+
+export const deleteProjectIdea = async (id: string): Promise<void> => {
+  await api.delete(`/ideas/${id}`)
 }
