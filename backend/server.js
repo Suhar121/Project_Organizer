@@ -567,13 +567,36 @@ app.get('/projects/:id/commands/stream', (req, res) => {
     return res.status(404).json({ error: 'Project not found' });
   }
 
-  const savedCmd = Array.isArray(project.commands) && project.commands.find(c => c.id === commandId);
-  if (!savedCmd) {
-    return res.status(400).json({ error: 'Command not found' });
+  let commandToRun = '';
+  let commandLabel = '';
+  let commandWorkingDir = '';
+
+  if (commandId === '__default__') {
+    const scriptPath = path.join(project.path, 'start.ps1');
+    if (process.platform === 'win32' && fs.existsSync(scriptPath)) {
+      commandToRun = `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`;
+    } else {
+      // Fallback: try npm start if package.json exists
+      if (fs.existsSync(path.join(project.path, 'package.json'))) {
+        commandToRun = 'npm start';
+      } else {
+        return res.status(400).json({ error: 'No default start script found.' });
+      }
+    }
+    commandLabel = 'Default Start';
+    commandWorkingDir = project.path;
+  } else {
+    const savedCmd = Array.isArray(project.commands) && project.commands.find(c => c.id === commandId);
+    if (!savedCmd) {
+      return res.status(400).json({ error: 'Command not found' });
+    }
+    commandToRun = savedCmd.command;
+    commandLabel = savedCmd.label;
+    commandWorkingDir = savedCmd.workingDir || '';
   }
 
-  const resolvedCwd = savedCmd.workingDir
-    ? path.resolve(project.path, savedCmd.workingDir)
+  const resolvedCwd = commandWorkingDir
+    ? path.resolve(project.path, commandWorkingDir)
     : project.path;
 
   if (!fs.existsSync(resolvedCwd)) {
@@ -585,7 +608,7 @@ app.get('/projects/:id/commands/stream', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const commandKey = `${id}:${savedCmd.id || savedCmd.command}`;
+  const commandKey = `${id}:${commandId}`;
 
   if (runningCommandKeys.has(commandKey)) {
     const existingRunId = runningCommandKeys.get(commandKey);
@@ -609,7 +632,7 @@ app.get('/projects/:id/commands/stream', (req, res) => {
   }
 
   const runId = `${id}-${Date.now()}`;
-  const child = spawn(savedCmd.command, [], {
+  const child = spawn(commandToRun, [], {
     cwd: resolvedCwd,
     shell: true,
     detached: process.platform !== 'win32'
@@ -625,7 +648,7 @@ app.get('/projects/:id/commands/stream', (req, res) => {
   runningProcesses.set(runId, session);
   runningCommandKeys.set(commandKey, runId);
 
-  broadcastToSession(session, { type: 'info', text: `> ${savedCmd.command}`, cwd: resolvedCwd, runId });
+  broadcastToSession(session, { type: 'info', text: `> ${commandToRun}`, cwd: resolvedCwd, runId });
 
   child.stdout.on('data', (data) => broadcastToSession(session, { type: 'stdout', text: data.toString() }));
   child.stderr.on('data', (data) => broadcastToSession(session, { type: 'stderr', text: data.toString() }));
@@ -640,7 +663,7 @@ app.get('/projects/:id/commands/stream', (req, res) => {
       status: code === 0 ? 'success' : 'failed',
       projectName: project.name,
       path: resolvedCwd,
-      details: `${savedCmd.label}: exited with code ${code}`
+      details: `${commandLabel}: exited with code ${code}`
     });
 
     session.clients.forEach((clientRes) => {

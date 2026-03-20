@@ -38,7 +38,8 @@ const connect = () => {
   exitCode.value = null
   isRunning.value = true
 
-  const url = `http://localhost:6001/projects/${props.projectId}/commands/stream?commandId=${encodeURIComponent(props.commandId)}`
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:6001'
+  const url = `${baseUrl}/projects/${props.projectId}/commands/stream?commandId=${encodeURIComponent(props.commandId)}`
   es = new EventSource(url)
 
   es.onmessage = (event) => {
@@ -82,7 +83,8 @@ const killProcess = async () => {
   // First send an explicit kill request so the process tree is terminated
   if (activeRunId && activeProjectId) {
     try {
-      await fetch(`http://localhost:6001/projects/${activeProjectId}/commands/kill`, {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:6001'
+      await fetch(`${baseUrl}/projects/${activeProjectId}/commands/kill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ runId: activeRunId })
