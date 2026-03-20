@@ -19,8 +19,6 @@ import NotesPage from './NotesPage.vue'
 import ActivityPage from './ActivityPage.vue'
 import VaultPage from './VaultPage.vue'
 import BoardPage from './BoardPage.vue'
-import ResourcesPage from './ResourcesPage.vue'
-import GitHealthPage from './GitHealthPage.vue'
 import Button from '../components/ui/Button.vue'
 
 import {
@@ -41,7 +39,7 @@ import { useRecentProjects } from '../composables/useRecentProjects'
 import { useRunningProcesses } from '../composables/useRunningProcesses'
 
 type TodoStatus = 'todo' | 'doing' | 'done'
-type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban' | 'resources' | 'git_health'
+type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban'
 
 type TodoItem = {
   id: string
@@ -345,29 +343,34 @@ watch(activePage, (page) => {
     <Sidebar v-model:active-page="activePage" />
 
     <div class="flex-1 flex flex-col min-w-0">
-      <header class="flex justify-between items-center w-full px-6 py-4 bg-[#0b1326]/50 border-b border-primary/10 sticky top-0 z-40 backdrop-blur-md">
+      <header class="flex justify-between items-center w-full px-8 py-5 bg-background border-b border-outline-variant/30 sticky top-0 z-40">
         <div class="flex items-center gap-4">
-          <h2 class="font-headline text-lg font-bold text-primary uppercase tracking-widest italic">
+          <h2 class="text-xl font-semibold text-on-surface capitalize">
             {{ activePage.replace('_', ' ') }}
           </h2>
         </div>
 
-        <div class="hidden md:flex flex-1 max-w-xl mx-8">
-        <div class="relative w-full group">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
-          <input v-model="search" class="w-full bg-surface-container-highest border-l-2 border-transparent focus:border-primary px-10 py-2 font-label text-xs uppercase tracking-wider text-on-surface outline-none transition-all placeholder:text-outline/50" placeholder="GLOBAL_SEARCH [CTRL+K]" type="text"/>
+        <div class="hidden md:flex flex-1 max-w-xl mx-12">
+          <div class="relative w-full group">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant h-4 w-4" />
+            <input
+              v-model="search"
+              class="w-full bg-surface border border-outline-variant/50 rounded-lg px-10 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50"
+              placeholder="Search projects... (Ctrl+K)"
+              type="text"
+            />
+          </div>
         </div>
-      </div>
 
-      <div class="flex items-center gap-4">
-        <button @click="isAddDialogOpen = true" class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 font-headline uppercase tracking-[0.05rem] text-sm font-bold active:scale-95 transition-colors hover:bg-primary-container">
-          <span class="material-symbols-outlined text-sm">add_box</span> NEW_PROJECT
-        </button>
-        <button @click="refreshOpsData" class="p-2 text-primary hover:bg-primary/10 transition-colors">
-          <RefreshCw class="h-5 w-5" :class="isSystemLoading ? 'animate-spin' : ''" />
-        </button>
-      </div>
-    </header>
+        <div class="flex items-center gap-3">
+          <button @click="isAddDialogOpen = true" class="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg text-sm font-medium active:scale-95 transition-all hover:bg-primary/90 shadow-sm">
+            <Plus class="h-4 w-4" /> New Project
+          </button>
+          <button @click="refreshOpsData" class="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
+            <RefreshCw class="h-5 w-5" :class="isSystemLoading ? 'animate-spin' : ''" />
+          </button>
+        </div>
+      </header>
 
       <main class="p-6 space-y-8 max-w-[1600px] mx-auto w-full flex-1">
       <template v-if="activePage === 'dashboard'">
@@ -379,16 +382,32 @@ watch(activePage, (page) => {
         <RecentProjectsBar v-if="recentProjects.length > 0" :projects="recentProjects" :is-project-running="isProjectRunning" @action-executed="loadProjects(); loadActivity(); refreshRunningProcesses()" @project-clicked="(p) => { search = p.name }" />
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <section class="lg:col-span-2 space-y-4">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">folder_open</span><h3 class="font-label text-sm font-bold uppercase tracking-widest text-on-surface">PROJECT_LIBRARY</h3></div>
+          <section class="lg:col-span-2 space-y-6">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <div class="flex items-center gap-3">
+                <div class="p-1.5 bg-primary/10 rounded-lg">
+                  <span class="material-symbols-outlined text-primary text-xl">folder_open</span>
+                </div>
+                <h3 class="text-sm font-bold text-on-surface tracking-tight">Active Project Library</h3>
+              </div>
               <div v-if="availableTags.length > 0" class="flex gap-2">
-                <button v-for="tag in availableTags" :key="tag" @click="toggleTagFilter(tag)" class="bg-surface-container-highest px-3 py-1 text-[9px] font-label font-bold uppercase transition-colors" :class="tagFilter === tag ? 'text-primary border-b border-primary' : 'text-on-surface-variant hover:text-primary'">{{ tag }}</button>
+                <button
+                  v-for="tag in availableTags"
+                  :key="tag"
+                  @click="toggleTagFilter(tag)"
+                  class="px-3 py-1 rounded-full text-[10px] font-bold uppercase transition-all"
+                  :class="tagFilter === tag ? 'bg-primary text-white shadow-sm' : 'bg-surface-container-highest text-on-surface-variant hover:bg-surface-container hover:text-on-surface'"
+                >
+                  {{ tag }}
+                </button>
               </div>
             </div>
 
-            <div v-if="filteredProjects.length === 0" class="bg-surface-container-low p-12 text-center border border-dashed border-outline-variant"><span class="material-symbols-outlined text-4xl text-outline-variant mb-4">inventory_2</span><p class="font-label text-sm uppercase text-on-surface-variant">NO_MATCHING_PROJECTS_FOUND</p></div>
-            <div class="space-y-3">
+            <div v-if="filteredProjects.length === 0" class="bg-surface border border-dashed border-outline-variant/30 rounded-2xl p-16 text-center shadow-inner">
+              <span class="material-symbols-outlined text-5xl text-outline-variant/40 mb-4 block">inventory_2</span>
+              <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant/60">No matching projects found</p>
+            </div>
+            <div class="space-y-4">
               <ProjectCard v-for="project in filteredProjects" :key="project.id" :project="project" :is-running="isProjectRunning(project.id)" @deleted="loadProjects" @updated="loadProjects" @edit="openEditDialog" />
             </div>
           </section>
@@ -396,10 +415,19 @@ watch(activePage, (page) => {
           <aside class="space-y-8">
             <PortManager :filtered-ports="filteredPorts" :is-killing-port="isKillingPort" @kill-process="handleKillProcess" />
 
-            <section class="bg-surface-container-highest p-4 space-y-2">
-              <div class="flex items-center justify-between"><span class="text-[10px] font-label font-bold text-on-surface-variant uppercase">SYSTEM_LOGS_PREVIEW</span><span class="flex h-2 w-2 rounded-full" :class="isActivityLoading ? 'bg-secondary animate-pulse' : 'bg-primary'"></span></div>
-              <div class="font-mono text-[10px] space-y-1 text-on-surface-variant opacity-80 overflow-y-auto max-h-40 hide-scrollbar">
-                <p v-for="entry in activityEntries.slice(0, 10)" :key="entry.id" :class="entry.status === 'error' ? 'text-error' : 'text-primary/70'">[{{ formatTimeAgo(entry.timestamp) }}] {{ entry.action.toUpperCase() }}: {{ entry.projectName || entry.path }}</p>
+            <section class="bg-surface border border-outline-variant/30 rounded-2xl p-6 space-y-4 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-on-surface tracking-tight uppercase tracking-wider">Operational Logs</span>
+                <span class="flex h-2 w-2 rounded-full" :class="isActivityLoading ? 'bg-secondary animate-pulse' : 'bg-primary'"></span>
+              </div>
+              <div class="space-y-3 max-h-[300px] overflow-y-auto scrollbar-hide pr-1">
+                <div v-for="entry in activityEntries.slice(0, 10)" :key="entry.id" class="flex gap-3 text-[11px] leading-relaxed group">
+                  <span class="text-on-surface-variant/40 font-mono shrink-0">[{{ formatTimeAgo(entry.timestamp) }}]</span>
+                  <p class="text-on-surface-variant font-medium break-all">
+                    <span :class="entry.status === 'error' ? 'text-error' : 'text-primary'" class="font-bold mr-1">{{ entry.action.toUpperCase() }}</span>
+                    {{ entry.projectName || entry.path }}
+                  </p>
+                </div>
               </div>
             </section>
           </aside>
@@ -438,19 +466,20 @@ watch(activePage, (page) => {
       <template v-else-if="activePage === 'kanban'">
         <BoardPage :projects="projects" />
       </template>
-
-      <template v-else-if="activePage === 'resources'">
-        <ResourcesPage />
-      </template>
-
-      <template v-else-if="activePage === 'git_health'">
-        <GitHealthPage :projects="projects" :is-loading="isSystemLoading" @refresh-all="loadProjects" />
-      </template>
     </main>
 
-      <footer class="p-6 border-t border-outline-variant/10 flex justify-between items-center text-outline-variant text-[10px] font-label uppercase tracking-widest">
-        <span>NODE_ID: PX-992-BETA</span>
-        <div class="flex gap-8"><span>v2.4.1 (STABLE)</span></div>
+      <footer class="px-8 py-6 border-t border-outline-variant/20 flex justify-between items-center text-on-surface-variant text-[11px] font-medium tracking-wide">
+        <div class="flex items-center gap-4">
+          <span>Dash ID: PX-992-BETA</span>
+          <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+          <span>Version 2.4.1</span>
+        </div>
+        <div class="flex gap-6">
+          <span class="text-tertiary/70 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
+            Cloud Sync Active
+          </span>
+        </div>
       </footer>
     </div>
 
