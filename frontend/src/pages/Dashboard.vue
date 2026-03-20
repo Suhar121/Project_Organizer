@@ -14,6 +14,7 @@ import RecentProjectsBar from '../components/RecentProjectsBar.vue'
 import ProjectStatsCard from '../components/ProjectStatsCard.vue'
 import SystemMonitor from '../components/SystemMonitor.vue'
 import PortManager from '../components/PortManager.vue'
+import Sidebar from '../components/Sidebar.vue'
 import NotesPage from './NotesPage.vue'
 import ActivityPage from './ActivityPage.vue'
 import VaultPage from './VaultPage.vue'
@@ -338,21 +339,18 @@ watch(activePage, (page) => {
 </script>
 
 <template>
-  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-surface text-on-surface font-body selection:bg-primary/30 pb-20 md:pb-0">
-    <header class="flex justify-between items-center w-full px-6 py-4 bg-[#0b1326] border-l-4 border-primary sticky top-0 z-50">
-      <div class="flex items-center gap-4">
-        <span class="material-symbols-outlined text-primary">terminal</span>
-        <h1 class="text-xl font-bold text-primary tracking-tighter font-headline uppercase italic">TACTICAL_OS</h1>
-        <nav class="hidden lg:flex items-center gap-8 ml-8">
-          <button @click="activePage = 'dashboard'" :class="[activePage === 'dashboard' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">DASHBOARD</button>
-          <button @click="activePage = 'kanban'" :class="[activePage === 'kanban' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">KANBAN</button>
-          <button @click="activePage = 'notes'" :class="[activePage === 'notes' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">GLOBAL_NOTES</button>
-          <button @click="activePage = 'activity'" :class="[activePage === 'activity' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">ACTIVITY_LOG</button>
-          <button @click="activePage = 'vault'" :class="[activePage === 'vault' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">SECRET_VAULT</button>
-        </nav>
-      </div>
+  <div class="flex min-h-screen w-full bg-surface text-on-surface font-body selection:bg-primary/30">
+    <Sidebar v-model:active-page="activePage" />
 
-      <div class="hidden md:flex flex-1 max-w-xl mx-8">
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="flex justify-between items-center w-full px-6 py-4 bg-[#0b1326]/50 border-b border-primary/10 sticky top-0 z-40 backdrop-blur-md">
+        <div class="flex items-center gap-4">
+          <h2 class="font-headline text-lg font-bold text-primary uppercase tracking-widest italic">
+            {{ activePage.replace('_', ' ') }}
+          </h2>
+        </div>
+
+        <div class="hidden md:flex flex-1 max-w-xl mx-8">
         <div class="relative w-full group">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
           <input v-model="search" class="w-full bg-surface-container-highest border-l-2 border-transparent focus:border-primary px-10 py-2 font-label text-xs uppercase tracking-wider text-on-surface outline-none transition-all placeholder:text-outline/50" placeholder="GLOBAL_SEARCH [CTRL+K]" type="text"/>
@@ -369,7 +367,7 @@ watch(activePage, (page) => {
       </div>
     </header>
 
-    <main class="p-6 space-y-8 max-w-[1600px] mx-auto w-full">
+      <main class="p-6 space-y-8 max-w-[1600px] mx-auto w-full flex-1">
       <template v-if="activePage === 'dashboard'">
         <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <SystemMonitor :system-overview="systemOverview" class="md:col-span-2" />
@@ -440,10 +438,11 @@ watch(activePage, (page) => {
       </template>
     </main>
 
-    <footer class="p-6 border-t border-outline-variant/10 flex justify-between items-center text-outline-variant text-[10px] font-label uppercase tracking-widest mt-auto">
-      <span>NODE_ID: PX-992-BETA</span>
-      <div class="flex gap-8"><span>v2.4.1 (STABLE)</span></div>
-    </footer>
+      <footer class="p-6 border-t border-outline-variant/10 flex justify-between items-center text-outline-variant text-[10px] font-label uppercase tracking-widest">
+        <span>NODE_ID: PX-992-BETA</span>
+        <div class="flex gap-8"><span>v2.4.1 (STABLE)</span></div>
+      </footer>
+    </div>
 
     <AddProjectDialog v-model:open="isAddDialogOpen" @added="loadProjects" />
     <EditProjectDialog v-model:open="isEditDialogOpen" :project="projectToEdit" @updated="loadProjects" />
