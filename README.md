@@ -15,7 +15,7 @@
 
 ##  Overview
 
-**Dev Dashboard** is a comprehensive, local-first command center for developers managing multiple repositories. It consolidates project management, system telemetry, network socket monitoring, and background process execution into a single, beautifully designed interface.
+**Dev Dashboard** is a comprehensive, local-first command center for developers managing multiple repositories. It consolidates project management, system telemetry, network socket monitoring, and background process execution into a single, beautifully designed interface. 
 
 Say goodbye to terminal clutter and scattered notes. Manage all your local projects, environments, and server ports from one tactical operations screen.
 
@@ -26,7 +26,7 @@ Say goodbye to terminal clutter and scattered notes. Manage all your local proje
 - ** Multi-Command Execution**: Define and run multiple custom scripts (e.g., `npm run dev`, `cargo build`) per project with specific working directories.
 - ** Network Socket Management**: Monitor active local ports and instantly kill hanging processes.
 - ** Live Command Logs**: Integrated terminal output for running services with explicit kill-switch capabilities.
-- ** Local-First & Secure**: Zero cloud dependency. All data, notes, and activity are stored securely in local JSON/SQLite files.
+- ** Local-First & Secure**: Zero cloud dependency. All data, notes, and activity are stored securely in local JSON/SQLite files. 
 
 ##  Tech Stack
 
@@ -92,8 +92,8 @@ Alternatively, double-click the `start-dashboard.bat` file in the root directory
 
 ##  Contributing
 
-Contributions, issues, and feature requests are welcome!
-Feel free to check out the [issues page](https://github.com/Suhar121/Project_Organizer/issues) to propose new ideas or report bugs.
+Contributions, issues, and feature requests are welcome! 
+Feel free to check out the [issues page](https://github.com/Suhar121/Project_Organizer/issues) to propose new ideas or report bugs. 
 
 ##  License
 

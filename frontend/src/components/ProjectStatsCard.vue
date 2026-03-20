@@ -52,7 +52,7 @@ const maxSparklineValue = computed(() => Math.max(...sparklineData.value, 1))
       </div>
       <span class="h-1.5 w-1.5 rounded-full bg-outline-variant/50"></span>
     </div>
-
+    
     <div class="grid grid-cols-2 gap-y-6 gap-x-12 mb-auto">
       <div>
         <span class="block text-[9px] font-label text-on-surface-variant uppercase tracking-widest mb-1">PROJECT_TOTAL</span>
@@ -80,7 +80,7 @@ const maxSparklineValue = computed(() => Math.max(...sparklineData.value, 1))
           :key="idx"
           class="flex-1 bg-outline-variant/30 h-full relative overflow-hidden group-hover:bg-outline-variant/40 transition-colors"
         >
-          <div class="absolute bottom-0 left-0 w-full bg-primary/40 group-hover:bg-primary transition-all duration-500 ease-out"
+          <div class="absolute bottom-0 left-0 w-full bg-primary/40 group-hover:bg-primary transition-all duration-500 ease-out" 
                :style="{ height: `${val > 0 ? (val / maxSparklineValue) * 100 : 5}%` }"></div>
         </div>
       </div>

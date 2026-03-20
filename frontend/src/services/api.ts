@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:6001'
+  baseURL: 'http://localhost:6001'
 })
 
 export interface Project {
@@ -212,3 +212,4 @@ export const createLabel = async (label: Omit<Label, 'id'>): Promise<Label> => {
 export const deleteLabel = async (id: string): Promise<void> => {
   await api.delete(`/labels/${id}`)
 }
+
