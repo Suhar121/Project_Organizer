@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Clock, Play, Code, MoreVertical } from 'lucide-vue-next'
+import { MoreVertical } from 'lucide-vue-next'
 import type { Project } from '../services/api'
-import { runProject, openVSCode } from '../services/api'
 
 const props = defineProps<{
   projects: Project[]
@@ -12,15 +11,6 @@ const emit = defineEmits<{
   (e: 'project-clicked', project: Project): void
   (e: 'action-executed'): void
 }>()
-
-const handleRun = async (project: Project) => {
-  try {
-    await runProject(project.path)
-    emit('action-executed')
-  } catch (err) {
-    console.error('Failed to run project:', err)
-  }
-}
 
 const formatTimeAgo = (iso?: string) => {
   if (!iso) return ''
@@ -39,25 +29,37 @@ const formatTimeAgo = (iso?: string) => {
 <template>
   <div v-if="projects.length > 0" class="space-y-4">
     <div class="flex items-center gap-4 mb-4">
-      <h3 class="font-label text-sm font-bold uppercase tracking-widest text-primary">RECENT_OPERATIONS</h3>
-      <div class="flex-1 h-px bg-outline-variant/30"></div>
+      <h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Recent Operations</h3>
+      <div class="flex-1 h-px bg-outline-variant/10"></div>
     </div>
     <div class="flex overflow-x-auto gap-4 pb-4 hide-scrollbar">
       <div
         v-for="project in projects"
         :key="project.id"
         @click="emit('project-clicked', project)"
-        class="min-w-[280px] bg-surface-container p-4 border-l-2 hover:bg-surface-container-high transition-colors group cursor-pointer"
-        :class="isProjectRunning?.(project.id) ? 'border-primary-container/30' : 'border-outline-variant'"
+        class="min-w-[280px] bg-surface-container-low p-5 rounded-2xl border border-outline-variant/30 hover:bg-surface-container transition-all group cursor-pointer shadow-sm hover:shadow-md"
       >
         <div class="flex justify-between items-center mb-4">
-          <span class="bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-label font-bold uppercase">{{ project.tags?.[0] || 'NODE_JS' }}</span>
-          <MoreVertical class="h-3 w-3 text-on-surface-variant" />
+          <span class="bg-primary/10 text-primary px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-tight">
+            {{ project.tags?.[0] || 'Node.js' }}
+          </span>
+          <div class="p-1 rounded-full hover:bg-surface-container-highest transition-colors">
+            <MoreVertical class="h-3 w-3 text-on-surface-variant/40" />
+          </div>
         </div>
-        <h4 class="font-headline font-black text-primary group-hover:text-primary-container transition-colors uppercase tracking-tight drop-shadow-[0_0_8px_rgba(195,245,255,0.2)]">{{ project.name.replace(/ /g, '_') }}</h4>
-
-        <p class="text-[10px] text-on-surface-variant mt-1 font-mono">Last edited: {{ formatTimeAgo(project.updatedAt) || '2h ago' }}</p>
+        <h4 class="text-lg font-semibold text-on-surface group-hover:text-primary transition-colors tracking-tight">{{ project.name }}</h4>
+        <p class="text-[10px] text-on-surface-variant/60 mt-1 font-medium italic">Updated: {{ formatTimeAgo(project.updatedAt) || 'Just now' }}</p>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

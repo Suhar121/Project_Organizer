@@ -6,8 +6,6 @@ import {
   Activity,
   LockKeyhole,
   Terminal,
-  Globe,
-  GitGraph
 } from 'lucide-vue-next'
 
 type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban'
@@ -49,13 +47,13 @@ const navItems: { id: AppPage; label: string; icon: any }[] = [
           : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'"
       >
         <component :is="item.icon" class="h-4 w-4" />
-        <span class="text-sm">{{ item.label }}</span>
+        <span class="text-sm tracking-tight">{{ item.label }}</span>
       </button>
     </nav>
 
     <div class="p-6 border-t border-outline-variant/20">
       <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between text-[10px] font-medium text-on-surface-variant uppercase">
+        <div class="flex items-center justify-between text-[10px] font-medium text-on-surface-variant uppercase tracking-wider">
           <span>System Status</span>
           <span class="text-tertiary">Operational</span>
         </div>
@@ -66,3 +64,9 @@ const navItems: { id: AppPage; label: string; icon: any }[] = [
     </div>
   </aside>
 </template>
+
+<style scoped>
+.font-headline {
+  font-family: 'Space Grotesk', sans-serif;
+}
+</style>

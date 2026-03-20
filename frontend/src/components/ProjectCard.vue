@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Play, Code, FolderOpen, Trash2, Pin, PinOff, Edit, GitBranch, Terminal, Database, Cloud, History, Settings } from 'lucide-vue-next'
+import { Play, Trash2, Pin, PinOff, Edit, GitBranch, Terminal, Database, Cloud, History } from 'lucide-vue-next'
 
-import { runProject, runProjectCommand, openVSCode, openFolder, deleteProject, updateProject } from '../services/api'
+import { deleteProject, updateProject } from '../services/api'
 import type { Project, ProjectCommand } from '../services/api'
-import Button from './ui/Button.vue'
 import CommandLogPanel from './CommandLogPanel.vue'
 
 const props = defineProps<{

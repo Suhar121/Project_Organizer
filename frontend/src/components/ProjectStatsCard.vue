@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { PlayCircle, GitBranch, Activity, Info } from 'lucide-vue-next'
+import { Info } from 'lucide-vue-next'
 
 import type { Project, ActivityEntry } from '../services/api'
 
@@ -44,44 +44,54 @@ const maxSparklineValue = computed(() => Math.max(...sparklineData.value, 1))
 </script>
 
 <template>
-  <div class="bg-surface-container-low p-6 relative overflow-hidden border border-outline-variant/10 group flex flex-col">
-    <div class="flex justify-between items-center mb-6">
-      <div class="flex items-center gap-2">
-        <Info class="h-3 w-3 text-outline" />
-        <span class="font-label text-xs font-bold uppercase tracking-widest text-on-surface">SYSTEM_METRICS</span>
+  <div class="bg-surface border border-outline-variant/30 rounded-2xl p-6 relative overflow-hidden group flex flex-col shadow-sm hover:shadow-md transition-all">
+    <div class="flex justify-between items-center mb-8">
+      <div class="flex items-center gap-2.5">
+        <div class="p-1.5 bg-tertiary/10 rounded-lg">
+          <Info class="h-4 w-4 text-tertiary" />
+        </div>
+        <span class="text-sm font-bold text-on-surface tracking-tight">Ecosystem Metrics</span>
       </div>
-      <span class="h-1.5 w-1.5 rounded-full bg-outline-variant/50"></span>
-    </div>
-
-    <div class="grid grid-cols-2 gap-y-6 gap-x-12 mb-auto">
-      <div>
-        <span class="block text-[9px] font-label text-on-surface-variant uppercase tracking-widest mb-1">PROJECT_TOTAL</span>
-        <span class="text-3xl font-headline font-black text-on-surface">{{ totalProjects }}</span>
-      </div>
-      <div>
-        <span class="block text-[9px] font-label text-on-surface-variant uppercase tracking-widest mb-1">PROCESS_ACTIVE</span>
-        <span class="text-3xl font-headline font-black text-on-surface">{{ runningCount || 0 }}</span>
-      </div>
-      <div>
-        <span class="block text-[9px] font-label text-on-surface-variant uppercase tracking-widest mb-1">GIT_DIRTY_STATE</span>
-        <span class="text-3xl font-headline font-black text-secondary">{{ uncommittedCount }}</span>
-      </div>
-      <div>
-        <span class="block text-[9px] font-label text-on-surface-variant uppercase tracking-widest mb-1">OPS_LAST_24H</span>
-        <span class="text-3xl font-headline font-black text-on-surface">{{ activityLast24h }}</span>
+      <div class="flex gap-1">
+        <span class="h-1 w-1 rounded-full bg-primary"></span>
+        <span class="h-1 w-1 rounded-full bg-secondary"></span>
+        <span class="h-1 w-1 rounded-full bg-tertiary"></span>
       </div>
     </div>
 
-    <div class="mt-8 border-t border-outline-variant/10 pt-4">
-      <span class="block text-[9px] font-label text-on-surface-variant uppercase tracking-widest mb-4">ACTIVITY_WAVEFORM_7D</span>
-      <div class="flex items-end gap-1 h-6">
+    <div class="grid grid-cols-2 gap-y-8 gap-x-12 mb-auto">
+      <div class="space-y-1">
+        <span class="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Total Projects</span>
+        <span class="text-3xl font-bold text-on-surface tracking-tighter">{{ totalProjects }}</span>
+      </div>
+      <div class="space-y-1">
+        <span class="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Active Tasks</span>
+        <span class="text-3xl font-bold text-primary tracking-tighter">{{ runningCount || 0 }}</span>
+      </div>
+      <div class="space-y-1">
+        <span class="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Git Status (Dirty)</span>
+        <span class="text-3xl font-bold text-secondary tracking-tighter">{{ uncommittedCount }}</span>
+      </div>
+      <div class="space-y-1">
+        <span class="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Ops (24h)</span>
+        <span class="text-3xl font-bold text-on-surface tracking-tighter">{{ activityLast24h }}</span>
+      </div>
+    </div>
+
+    <div class="mt-10 pt-6 border-t border-outline-variant/10">
+      <div class="flex justify-between items-end mb-4">
+        <span class="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Activity Frequency (7d)</span>
+        <span class="text-[10px] font-bold text-primary">Peak: {{ maxSparklineValue }}</span>
+      </div>
+      <div class="flex items-end gap-1.5 h-10">
         <div
           v-for="(val, idx) in sparklineData"
           :key="idx"
-          class="flex-1 bg-outline-variant/30 h-full relative overflow-hidden group-hover:bg-outline-variant/40 transition-colors"
+          class="flex-1 bg-surface-container-low rounded-t-md h-full relative overflow-hidden transition-all duration-300 group-hover:bg-surface-container"
+          :title="`${val} events`"
         >
-          <div class="absolute bottom-0 left-0 w-full bg-primary/40 group-hover:bg-primary transition-all duration-500 ease-out"
-               :style="{ height: `${val > 0 ? (val / maxSparklineValue) * 100 : 5}%` }"></div>
+          <div class="absolute bottom-0 left-0 w-full bg-primary/20 group-hover:bg-primary transition-all duration-700 ease-out rounded-t-sm"
+               :style="{ height: `${val > 0 ? (val / maxSparklineValue) * 100 : 10}%` }"></div>
         </div>
       </div>
     </div>

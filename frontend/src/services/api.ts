@@ -53,7 +53,6 @@ export interface Label {
   color: string;
 }
 
-
 export interface PortEntry {
   host: string
   port: number
@@ -94,12 +93,6 @@ export interface Note {
   projectId?: string
 }
 
-export interface Label {
-  id: string
-  name: string
-  color: string
-}
-
 export interface LLMSettings {
   provider: string
   apiKey: string
@@ -107,14 +100,33 @@ export interface LLMSettings {
   model: string
 }
 
-export const fetchNotes = async (projectId?: string): Promise<Note[]> => []
-export const createNote = async (projectId: string | null, content: string): Promise<Note> => ({ id: '1', content, createdAt: new Date().toISOString(), projectId: projectId || undefined })
-export const updateNote = async (projectId: string, id: string, content: string): Promise<Note> => ({ id, content, createdAt: new Date().toISOString() })
-export const deleteNote = async (projectId: string, id: string): Promise<void> => {}
+export const fetchNotes = async (projectId?: string): Promise<Note[]> => {
+  const { data } = await api.get('/notes', { params: { projectId } })
+  return data
+}
 
+export const createNote = async (projectId: string | null, content: string): Promise<Note> => {
+  const { data } = await api.post('/notes', { projectId, content })
+  return data
+}
 
-export const fetchSettings = async (): Promise<LLMSettings> => ({ provider: 'openai', apiKey: '', baseURL: '', model: '' })
-export const updateSettings = async (settings: LLMSettings): Promise<void> => {}
+export const updateNote = async (_projectId: string, id: string, content: string): Promise<Note> => {
+  const { data } = await api.put(`/notes/${id}`, { content })
+  return data
+}
+
+export const deleteNote = async (_projectId: string, id: string): Promise<void> => {
+  await api.delete(`/notes/${id}`)
+}
+
+export const fetchSettings = async (): Promise<LLMSettings> => {
+  const { data } = await api.get('/settings')
+  return data
+}
+
+export const updateSettings = async (settings: LLMSettings): Promise<void> => {
+  await api.put('/settings', settings)
+}
 
 export const fetchProjects = async (): Promise<Project[]> => {
   const { data } = await api.get('/projects')

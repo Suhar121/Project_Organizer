@@ -3,7 +3,6 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import {
   Plus,
   Search,
-  Layers,
   RefreshCw,
 } from 'lucide-vue-next'
 import ProjectCard from '../components/ProjectCard.vue'
@@ -19,7 +18,6 @@ import NotesPage from './NotesPage.vue'
 import ActivityPage from './ActivityPage.vue'
 import VaultPage from './VaultPage.vue'
 import BoardPage from './BoardPage.vue'
-import Button from '../components/ui/Button.vue'
 
 import {
   fetchProjects,
@@ -112,7 +110,6 @@ const vaultError = ref('')
 const vaultUnlockPassword = ref('')
 const vaultSecrets = ref<VaultSecret[]>([])
 const visibleSecretIds = ref<Record<string, boolean>>({})
-let vaultKey: CryptoKey | null = null
 
 let refreshHandle: number | null = null
 const hasLoadedDashboardData = ref(false)
@@ -279,10 +276,9 @@ const unlockVault = async () => {
   if (!saltRaw || !verifier) return
 
   const salt = new Uint8Array(atob(saltRaw).split('').map(c => c.charCodeAt(0)))
-  const { key, verifier: newVerifier } = await deriveMaterial(vaultUnlockPassword.value, salt)
+  const { verifier: newVerifier } = await deriveMaterial(vaultUnlockPassword.value, salt)
 
   if (newVerifier === verifier) {
-    vaultKey = key
     vaultIsUnlocked.value = true
   } else {
     vaultError.value = 'Invalid master key.'
@@ -290,7 +286,6 @@ const unlockVault = async () => {
 }
 
 const lockVault = () => {
-  vaultKey = null
   vaultIsUnlocked.value = false
   vaultUnlockPassword.value = ''
 }
@@ -468,18 +463,9 @@ watch(activePage, (page) => {
       </template>
     </main>
 
-      <footer class="px-8 py-6 border-t border-outline-variant/20 flex justify-between items-center text-on-surface-variant text-[11px] font-medium tracking-wide">
-        <div class="flex items-center gap-4">
-          <span>Dash ID: PX-992-BETA</span>
-          <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
-          <span>Version 2.4.1</span>
-        </div>
-        <div class="flex gap-6">
-          <span class="text-tertiary/70 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
-            Cloud Sync Active
-          </span>
-        </div>
+      <footer class="p-6 border-t border-outline-variant/10 flex justify-between items-center text-outline-variant text-[10px] font-label uppercase tracking-widest">
+        <span>DevDash v1.0.0</span>
+        <div class="flex gap-8"><span></span></div>
       </footer>
     </div>
 
