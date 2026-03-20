@@ -5,29 +5,29 @@
   --color-on-primary: #00363d;
   --color-primary-container: #00e5ff;
   --color-on-primary-container: #00626e;
-  
+
   --color-secondary: #ffcf8f;
   --color-on-secondary: #452b00;
   --color-secondary-container: #feaa00;
   --color-on-secondary-container: #684300;
-  
+
   --color-tertiary: #e4edff;
   --color-on-tertiary: #213145;
-  
+
   --color-surface: #0b1326;
   --color-on-surface: #dae2fd;
   --color-surface-variant: #2d3449;
   --color-on-surface-variant: #bac9cc;
-  
+
   --color-background: #0b1326;
   --color-outline: #849396;
   --color-outline-variant: #3b494c;
-  
+
   --color-surface-container-low: #131b2e;
   --color-surface-container: #171f33;
   --color-surface-container-high: #222a3d;
   --color-surface-container-highest: #2d3449;
-  
+
   --color-error: #ffb4ab;
   --color-on-error: #690005;
 
@@ -57,7 +57,7 @@
 
 @layer utilities {
   .frame-rect { clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
-  
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }

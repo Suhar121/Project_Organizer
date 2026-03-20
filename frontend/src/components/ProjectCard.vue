@@ -5,6 +5,7 @@ import { Play, Code, FolderOpen, Trash2, Pin, PinOff, Edit, GitBranch, Terminal,
 import { runProject, runProjectCommand, openVSCode, openFolder, deleteProject, updateProject } from '../services/api'
 import type { Project, ProjectCommand } from '../services/api'
 import Button from './ui/Button.vue'
+import CommandLogPanel from './CommandLogPanel.vue'
 
 const props = defineProps<{
   project: Project
@@ -38,19 +39,21 @@ const togglePin = async () => {
   }
 }
 
-const handleStart = async () => {
-  try {
-    await runProject(props.project.path)
-  } catch (error) {
-    console.error(error)
+const logPanel = ref({ open: false, commandId: '', commandLabel: '' })
+
+const handleStart = () => {
+  logPanel.value = {
+    open: true,
+    commandId: '__default__',
+    commandLabel: 'START_PROTOCOL'
   }
 }
 
-const handleRunCommand = async (cmd: ProjectCommand) => {
-  try {
-    await runProjectCommand(props.project.id, { commandId: cmd.id })
-  } catch (error) {
-    console.error(error)
+const handleRunCommand = (cmd: ProjectCommand) => {
+  logPanel.value = {
+    open: true,
+    commandId: cmd.id,
+    commandLabel: cmd.label
   }
 }
 </script>
@@ -92,7 +95,7 @@ const handleRunCommand = async (cmd: ProjectCommand) => {
         </div>
       </div>
     </div>
-    
+
     <div class="flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-all">
       <template v-if="project.commands && project.commands.length > 0">
         <button
@@ -123,5 +126,13 @@ const handleRunCommand = async (cmd: ProjectCommand) => {
         <Trash2 class="h-4 w-4" />
       </button>
     </div>
+
+    <CommandLogPanel
+      :open="logPanel.open"
+      :project-id="project.id"
+      :command-id="logPanel.commandId"
+      :command-label="logPanel.commandLabel"
+      @close="logPanel.open = false"
+    />
   </div>
 </template>

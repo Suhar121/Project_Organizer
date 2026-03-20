@@ -57,13 +57,13 @@ new_foot = """        </section>
             <h3 class="text-white text-xs font-black uppercase tracking-[0.3em]">Live Feed</h3>
             <Activity class="text-[var(--color-accent-cyan)] h-4 w-4" />
           </div>
-          
+
           <div class="flex flex-col gap-6 max-h-[600px] overflow-y-auto hide-scrollbar" v-if="activityEntries.length > 0">
              <div v-for="entry in activityEntries.slice(0, 15)" :key="entry.id" class="flex flex-col gap-2 relative pl-6 border-l border-[var(--color-primary)]/20">
                 <span class="absolute left-[-4.5px] top-0 h-2 w-2 rounded-full" :class="entry.status === 'success' ? 'bg-[var(--color-accent-cyan)]' : 'bg-[var(--color-accent-pink)]'"></span>
                 <span class="text-slate-500 text-[10px] font-mono">{{ formatTimeAgo(entry.timestamp) }}</span>
                 <p class="text-slate-200 text-xs font-medium leading-relaxed">
-                  <span class="font-black" :class="entry.status === 'success' ? 'text-[var(--color-accent-cyan)]' : 'text-[var(--color-accent-pink)]'">{{ activityActionLabel(entry.action).toUpperCase() }}</span> 
+                  <span class="font-black" :class="entry.status === 'success' ? 'text-[var(--color-accent-cyan)]' : 'text-[var(--color-accent-pink)]'">{{ activityActionLabel(entry.action).toUpperCase() }}</span>
                   <span class="text-[var(--color-primary)] italic">{{ entry.projectName || entry.path }}</span> - {{ entry.details }}
                 </p>
              </div>

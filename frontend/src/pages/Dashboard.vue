@@ -19,6 +19,8 @@ import NotesPage from './NotesPage.vue'
 import ActivityPage from './ActivityPage.vue'
 import VaultPage from './VaultPage.vue'
 import BoardPage from './BoardPage.vue'
+import ResourcesPage from './ResourcesPage.vue'
+import GitHealthPage from './GitHealthPage.vue'
 import Button from '../components/ui/Button.vue'
 
 import {
@@ -39,7 +41,8 @@ import { useRecentProjects } from '../composables/useRecentProjects'
 import { useRunningProcesses } from '../composables/useRunningProcesses'
 
 type TodoStatus = 'todo' | 'doing' | 'done'
-  type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban'
+type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban' | 'resources' | 'git_health'
+
 type TodoItem = {
   id: string
   title: string
@@ -434,6 +437,14 @@ watch(activePage, (page) => {
 
       <template v-else-if="activePage === 'kanban'">
         <BoardPage :projects="projects" />
+      </template>
+
+      <template v-else-if="activePage === 'resources'">
+        <ResourcesPage />
+      </template>
+
+      <template v-else-if="activePage === 'git_health'">
+        <GitHealthPage :projects="projects" :is-loading="isSystemLoading" @refresh-all="loadProjects" />
       </template>
     </main>
 

@@ -13,7 +13,7 @@ new_template = """<template>
       <div class="flex items-center gap-4">
         <span class="material-symbols-outlined text-primary">terminal</span>
         <h1 class="text-xl font-bold text-primary tracking-tighter font-headline uppercase italic">TACTICAL_OS</h1>
-        
+
         <!-- Desktop Nav -->
         <nav class="hidden lg:flex items-center gap-8 ml-8">
           <button @click="activePage = 'dashboard'" :class="[activePage === 'dashboard' ? 'text-primary' : 'text-on-surface-variant hover:text-primary', 'font-headline text-xs font-bold uppercase tracking-widest transition-colors']">DASHBOARD</button>
@@ -103,9 +103,9 @@ new_template = """<template>
                 <h3 class="font-label text-sm font-bold uppercase tracking-widest text-on-surface">PROJECT_LIBRARY</h3>
               </div>
               <div v-if="availableTags.length > 0" class="flex gap-2">
-                <button 
-                  v-for="tag in availableTags" 
-                  :key="tag" 
+                <button
+                  v-for="tag in availableTags"
+                  :key="tag"
                   @click="toggleTagFilter(tag)"
                   class="bg-surface-container-highest px-3 py-1 text-[9px] font-label font-bold uppercase transition-colors"
                   :class="tagFilter === tag ? 'text-primary border-b border-primary' : 'text-on-surface-variant hover:text-primary'"
@@ -154,7 +154,7 @@ new_template = """<template>
                       <td class="px-4 py-3 text-primary">{{ entry.port }}</td>
                       <td class="px-4 py-3 truncate max-w-[120px]">{{ entry.processName }}</td>
                       <td class="px-4 py-3 text-right">
-                        <button 
+                        <button
                           @click="handleKillProcess(entry.pid, entry.port)"
                           :disabled="isKillingPort[entry.port]"
                           class="text-secondary hover:underline transition-colors uppercase font-bold text-[9px]"
@@ -199,8 +199,8 @@ new_template = """<template>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="space-y-4">
               <h1 class="font-headline text-2xl font-bold text-primary italic uppercase tracking-tighter">SCRATCHPAD</h1>
-              <textarea 
-                v-model="scratchpad" 
+              <textarea
+                v-model="scratchpad"
                 @input="saveScratchpad"
                 class="w-full h-[600px] bg-surface-container-low p-6 font-mono text-sm border-l-2 border-primary outline-none focus:bg-surface-container-high transition-colors resize-none"
                 placeholder="READY_FOR_INPUT..."
@@ -243,7 +243,7 @@ new_template = """<template>
       <template v-else-if="activePage === 'vault'">
           <div class="max-w-4xl mx-auto space-y-8">
             <h1 class="font-headline text-3xl font-bold text-secondary italic uppercase tracking-tighter text-center">ENCRYPTED_VAULT_INTERFACE</h1>
-            
+
             <div v-if="!vaultHasSetup" class="bg-surface-container-low p-8 border-t-2 border-secondary">
                <p class="font-label text-xs uppercase text-on-surface-variant mb-4">INITIALIZE_MASTER_KEY</p>
                <input v-model="vaultSetupPassword" type="password" placeholder="MASTER_KEY..." class="w-full bg-surface-container-highest p-4 outline-none mb-2" />
