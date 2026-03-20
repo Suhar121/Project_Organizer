@@ -5,10 +5,12 @@ import {
   NotebookPen,
   Activity,
   LockKeyhole,
-  Terminal
+  Terminal,
+  Globe,
+  GitGraph
 } from 'lucide-vue-next'
 
-type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban'
+type AppPage = 'dashboard' | 'notes' | 'activity' | 'vault' | 'kanban' | 'resources' | 'git_health'
 
 defineProps<{
   activePage: AppPage
@@ -21,6 +23,8 @@ const emit = defineEmits<{
 const navItems: { id: AppPage; label: string; icon: any }[] = [
   { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
   { id: 'kanban', label: 'KANBAN', icon: Trello },
+  { id: 'git_health', label: 'GIT_HEALTH', icon: GitGraph },
+  { id: 'resources', label: 'RESOURCES', icon: Globe },
   { id: 'notes', label: 'GLOBAL_NOTES', icon: NotebookPen },
   { id: 'activity', label: 'ACTIVITY_LOG', icon: Activity },
   { id: 'vault', label: 'SECRET_VAULT', icon: LockKeyhole }
